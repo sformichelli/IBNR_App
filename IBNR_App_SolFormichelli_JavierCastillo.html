@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;font-size:13px;color:#1a1a1a;background:transparent;display:flex;flex-direction:column;min-height:100vh}
+.hdr{background:linear-gradient(135deg,#0d3b6e 0%,#185FA5 60%,#1a7abf 100%);padding:14px 20px;display:flex;align-items:center;gap:12px;border-radius:12px;margin-bottom:14px}
+.hdr-icon{width:36px;height:36px;background:rgba(255,255,255,.15);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.hdr h1{color:#fff;font-size:16px;font-weight:600;line-height:1.2}
+.hdr p{color:rgba(255,255,255,.7);font-size:11px;margin-top:1px}
+.hdr-right{margin-left:auto;display:flex;gap:8px;align-items:center}
+.badge-hdr{background:rgba(255,255,255,.18);color:#fff;font-size:10px;padding:3px 9px;border-radius:20px;font-weight:500;border:0.5px solid rgba(255,255,255,.3)}
+.layout{display:flex;gap:14px;align-items:flex-start}
+.sidebar{width:190px;flex-shrink:0;position:sticky;top:0;display:flex;flex-direction:column;min-height:500px}
+.sb-section{margin-bottom:16px}
+.sb-label{font-size:10px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.8px;padding:0 10px;margin-bottom:6px}
+.sb-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;cursor:pointer;font-size:12px;color:#555;transition:all .15s}
+.sb-item:hover{background:rgba(24,95,165,.07);color:#185FA5}
+.sb-item.active{background:rgba(24,95,165,.12);color:#185FA5;font-weight:500}
+.sb-item .dot{width:6px;height:6px;border-radius:50%;background:#ddd;flex-shrink:0}
+.sb-item.done .dot{background:#3B6D11}
+.sb-item.active .dot{background:#185FA5}
+.sb-badge{margin-left:auto;font-size:9px;padding:1px 5px;border-radius:4px;background:#E6F1FB;color:#0C447C;font-weight:600}
+.sb-divider{height:0.5px;background:rgba(0,0,0,.08);margin:10px 0}
+.sb-authors{margin-top:auto;padding:10px;border-top:0.5px solid rgba(0,0,0,.08)}
+.sb-authors p{font-size:11px;font-weight:600;color:#333;line-height:1.4}
+.sb-authors span{font-size:10px;color:#888}
+.main{flex:1;min-width:0}
+.card{background:#fff;border:0.5px solid rgba(0,0,0,.1);border-radius:12px;padding:14px 18px;margin-bottom:12px}
+.card-title{font-size:13px;font-weight:600;margin-bottom:2px}
+.card-sub{font-size:11px;color:#888;margin-bottom:10px}
+.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}
+.metric{background:#f8f8f6;border-radius:10px;padding:12px 14px;border:0.5px solid rgba(0,0,0,.07)}
+.metric.accent{background:linear-gradient(135deg,#e8f1fb,#f0f6ff);border-color:rgba(24,95,165,.2)}
+.mlabel{font-size:10px;color:#888;margin-bottom:4px;font-weight:500;text-transform:uppercase;letter-spacing:.4px}
+.mval{font-size:20px;font-weight:600;color:#1a1a1a;line-height:1}
+.msub{font-size:10px;color:#999;margin-top:3px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{font-weight:600;text-align:right;padding:6px 7px;border-bottom:1px solid rgba(0,0,0,.1);color:#666;white-space:nowrap;background:#fafaf8}
+th:first-child{text-align:left}
+td{text-align:right;padding:4px 7px;border-bottom:0.5px solid rgba(0,0,0,.04);white-space:nowrap}
+td:first-child{text-align:left;color:#555}
+tr.tot td{font-weight:600;border-top:1px solid rgba(0,0,0,.15);border-bottom:none;background:#f5f5f2}
+tr:hover td{background:rgba(24,95,165,.03)}
+.obs{background:rgba(24,95,165,.08)}
+.proj{background:rgba(186,117,23,.1)}
+.outlier-cell{background:rgba(226,75,74,.15)!important;color:#a32d2d;font-weight:600}
+select,input[type=number]{border:0.5px solid rgba(0,0,0,.2);border-radius:7px;padding:5px 9px;font-size:12px;background:#fff;color:#1a1a1a}
+input[type=range]{-webkit-appearance:none;width:140px;height:3px;border-radius:2px;background:linear-gradient(to right,#185FA5 0%,#185FA5 var(--pct,3%),#ddd var(--pct,3%),#ddd 100%);outline:none;border:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;background:#185FA5;cursor:pointer;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+button{border:0.5px solid rgba(0,0,0,.2);border-radius:8px;padding:7px 14px;font-size:12px;background:#fff;color:#1a1a1a;cursor:pointer;font-weight:500}
+button:hover{background:#f5f5f3}
+button.primary{background:#185FA5;color:#fff;border-color:#185FA5}
+button.primary:hover{background:#0C447C}
+button.success{background:#3B6D11;color:#fff;border-color:#3B6D11}
+button.danger{background:#A32D2D;color:#fff;border-color:#A32D2D}
+button:disabled{opacity:.4;cursor:default}
+button.dl{font-size:11px;padding:5px 10px;width:100%}
+.upload-zone{border:1.5px dashed rgba(0,0,0,.18);border-radius:10px;padding:16px;text-align:center;cursor:pointer;margin-bottom:6px;transition:all .2s}
+.upload-zone:hover{border-color:#185FA5;background:rgba(24,95,165,.03)}
+.upload-zone input{display:none}
+.pbar{height:4px;background:rgba(0,0,0,.07);border-radius:2px;overflow:hidden;margin-top:6px}
+.pfill{height:100%;background:linear-gradient(90deg,#185FA5,#1a7abf);border-radius:2px;transition:width .15s}
+#smsg{font-size:11px;color:#888;margin-top:4px;min-height:15px}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal{background:#fff;border-radius:12px;padding:20px 22px;max-width:500px;width:100%;max-height:80vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.14)}
+.modal-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.modal-icon{width:32px;height:32px;border-radius:8px;background:#FAEEDA;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.modal-head h3{font-size:14px;font-weight:600}
+.modal-head p{font-size:11px;color:#888;margin-top:1px}
+.outlier-row{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;background:#fafaf8;border:0.5px solid rgba(0,0,0,.08);margin-bottom:6px;font-size:11px;flex-wrap:wrap}
+.outlier-row .or-col{font-weight:600;color:#185FA5;min-width:60px}
+.outlier-row .or-val{color:#a32d2d;font-weight:600}
+.outlier-row .or-range{color:#888;margin-left:auto}
+.modal-note{font-size:11px;color:#888;background:#fafaf8;border-radius:8px;padding:8px 10px;margin:10px 0;line-height:1.6;border:0.5px solid rgba(0,0,0,.07)}
+.modal-actions{display:flex;gap:7px;margin-top:14px}
+.chip{display:inline-flex;align-items:center;gap:4px;font-size:10px;padding:2px 7px;border-radius:5px;font-weight:600}
+.chip-blue{background:#E6F1FB;color:#0C447C}
+.chip-green{background:#EAF3DE;color:#27500A}
+.chip-amber{background:#FAEEDA;color:#633806}
+.chip-red{background:#FCEBEB;color:#A32D2D}
+.chip-gray{background:#f0f0ee;color:#555}
+.treatment-banner{background:linear-gradient(90deg,#fff8e8,#fffdf5);border:0.5px solid rgba(186,117,23,.4);border-radius:8px;padding:8px 14px;font-size:11px;color:#633806;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.units-bar{display:flex;align-items:center;gap:10px;background:#f8f8f6;border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:12px;border:0.5px solid rgba(0,0,0,.08)}
+.cw{position:relative;width:100%}
+.g2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+textarea{width:100%;border:0.5px solid rgba(0,0,0,.2);border-radius:8px;padding:8px 10px;font-size:12px;font-family:monospace;background:#fff;resize:vertical;color:#1a1a1a}
+.section{display:none}.section.active{display:block}
+.sim-row{display:flex;align-items:center;gap:10px;margin-top:10px}
+.sim-val{font-size:13px;font-weight:600;color:#185FA5;min-width:70px;text-align:right}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div class="hdr-icon">&#9632;</div>
+  <div>
+    <h1>IBNR Reserving &mdash; Mack &amp; Bootstrap CL</h1>
+    <p>Herramienta actuarial para el c&aacute;lculo de reservas t&eacute;cnicas en entidades aseguradoras</p>
+  </div>
+  <div class="hdr-right">
+    <span class="badge-hdr">Sector Asegurador</span>
+    <span class="badge-hdr" id="hdr-status">Sin datos</span>
+  </div>
+</div>
+
+<div class="layout">
+<div class="sidebar">
+  <div class="sb-section">
+    <div class="sb-label">Entrada</div>
+    <div class="sb-item active" onclick="showSection('s-input')" id="nav-input"><span class="dot"></span>Tri&aacute;ngulo</div>
+  </div>
+  <div class="sb-divider"></div>
+  <div class="sb-section">
+    <div class="sb-label">Resultados</div>
+    <div class="sb-item" onclick="showSection('s-resumen')" id="nav-resumen"><span class="dot"></span>Resumen<span class="sb-badge" id="badge-resumen" style="display:none">&#10003;</span></div>
+    <div class="sb-item" onclick="showSection('s-triangulos')" id="nav-triangulos"><span class="dot"></span>Tri&aacute;ngulos</div>
+    <div class="sb-item" onclick="showSection('s-mack')" id="nav-mack"><span class="dot"></span>Mack</div>
+    <div class="sb-item" onclick="showSection('s-bootstrap')" id="nav-bootstrap"><span class="dot"></span>Bootstrap</div>
+  </div>
+  <div class="sb-divider"></div>
+  <div class="sb-section">
+    <div class="sb-label">Exportar</div>
+    <div style="padding:0 6px;display:flex;flex-direction:column;gap:6px">
+      <button class="dl" onclick="downloadCSV()">&#8595; CSV</button>
+      <button class="dl" onclick="downloadExcel()">&#8595; Excel (.xlsx)</button>
+      <button class="dl" onclick="downloadPDF()">&#8595; Informe PDF</button>
+    </div>
+  </div>
+  <div class="sb-divider"></div>
+  <div class="sb-authors">
+    <div style="font-size:10px;color:#aaa;line-height:1.6">
+      Mack (1993)<br>Bootstrap CL<br>IQR + Mediana outliers<br>KDE Silverman
+    </div>
+    <div style="margin-top:8px;font-size:10px;color:#999;line-height:1.5">
+      Javier Castillo<br>Sol Formichelli
+    </div>
+  </div>
+</div>
+
+<div class="main">
+
+<!-- INPUT -->
+<div class="section active" id="s-input">
+  <div class="card">
+    <div class="card-title">Carga del tri&aacute;ngulo de desarrollo acumulado</div>
+    <div class="card-sub">Una fila por a&ntilde;o de accidente (el m&aacute;s antiguo arriba). Columnas = a&ntilde;os de desarrollo. <strong>Separador decimal: punto (.)</strong></div>
+    <div class="upload-zone" id="drop-zone" onclick="document.getElementById('file-in').click()">
+      <input type="file" id="file-in" accept=".xlsx,.xls,.csv,.txt,image/*" onchange="handleFile(this.files[0])">
+      <div style="font-size:13px;font-weight:600;margin-bottom:3px">Arrastra o haz clic para subir</div>
+      <div style="font-size:11px;color:#888">Excel, CSV, TXT o imagen &mdash; la IA extrae el tri&aacute;ngulo autom&aacute;ticamente</div>
+    </div>
+    <div id="file-status" style="font-size:11px;color:#185FA5;min-height:15px;margin-bottom:6px"></div>
+    <textarea id="tri-input" rows="10" placeholder="Pega aqu&iacute; los valores... (separador decimal: punto)"></textarea>
+    <div style="display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap">
+      <button onclick="loadExample()" class="primary">Cargar ejemplo</button>
+      <button onclick="document.getElementById('tri-input').value=''">Limpiar</button>
+      <button class="primary" id="btn-run" onclick="runAll()" style="margin-left:auto">&#9658; Proyectar</button>
+    </div>
+    <div style="margin-top:14px;padding-top:12px;border-top:0.5px solid rgba(0,0,0,.08);display:flex;align-items:center;gap:12px">
+      <span style="font-size:11px;color:#888;white-space:nowrap">Simulaciones Bootstrap</span>
+      <input type="range" id="n-sim-slider" min="5000" max="300000" step="5000" value="5000" oninput="updateSlider(this.value)">
+      <span class="sim-val" id="sim-display">5.000</span>
+    </div>
+    <div id="prog-wrap" style="display:none;margin-top:8px">
+      <div class="pbar"><div class="pfill" id="pbar" style="width:0"></div></div>
+      <div id="smsg"></div>
+    </div>
+  </div>
+</div>
+
+<!-- RESUMEN -->
+<div class="section" id="s-resumen">
+  <div id="treatment-banner" style="display:none"></div>
+  <div class="units-bar">
+    <span style="font-weight:500">Unidades del tri&aacute;ngulo:</span>
+    <select id="units-sel" onchange="applyUnits()">
+      <option value="1">Unidades</option>
+      <option value="1000">Miles</option>
+      <option value="1000000">Millones</option>
+    </select>
+    <span id="units-label" style="color:#185FA5;font-weight:500"></span>
+    <span style="margin-left:auto;font-size:11px;color:#aaa">Los gr&aacute;ficos y tablas se escalan autom&aacute;ticamente</span>
+  </div>
+  <div class="metrics" id="cards-res"></div>
+  <div class="g2">
+    <div class="card">
+      <div class="card-title">Reservas por a&ntilde;o de accidente &mdash; Mack CL</div>
+      <div class="cw" style="height:240px"><canvas id="ch-comp" role="img" aria-label="Reservas por anio"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Bootstrap KDE vs Mack lognormal</div>
+      <div class="card-sub">Distribuciones de la reserva total superpuestas</div>
+      <div class="cw" style="height:210px"><canvas id="ch-both" role="img" aria-label="Distribuciones"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- TRIANGULOS -->
+<div class="section" id="s-triangulos">
+  <div class="card">
+    <div class="card-title">Tri&aacute;ngulo completado &mdash; Chain-Ladder determinista</div>
+    <div class="card-sub"><span class="chip chip-blue">Observado</span>&nbsp;<span class="chip chip-amber">Proyectado CL</span></div>
+    <div style="overflow-x:auto"><table id="tri-cl"></table></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Heat-map del tri&aacute;ngulo</div>
+    <div class="card-sub">Intensidad proporcional al valor dentro de cada a&ntilde;o de accidente</div>
+    <div style="overflow-x:auto"><table id="tri-heat"></table></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Factores de desarrollo age-to-age f&#770;&#8336;</div>
+    <div style="overflow-x:auto;margin-bottom:10px"><table id="fac-tbl"></table></div>
+    <div class="cw" style="height:170px"><canvas id="ch-fac" role="img" aria-label="Factores"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Matriz de factores emp&iacute;ricos f&#7522;&#8336; = C(i,k+1)/C(i,k)</div>
+    <div class="card-sub">Pool de remuestreo Bootstrap por columna. <span class="chip chip-red" id="outlier-chip" style="display:none"></span></div>
+    <div style="overflow-x:auto"><table id="tri-femp"></table></div>
+  </div>
+</div>
+
+<!-- MACK -->
+<div class="section" id="s-mack">
+  <div class="card">
+    <div class="card-title">M&eacute;todo de Mack (1993) &mdash; Chain-Ladder estoc&aacute;stico</div>
+    <div class="card-sub">Cuantifica la incertidumbre de proceso y de par&aacute;metro sin suponer distribuci&oacute;n para los incrementos individuales.</div>
+    <div style="overflow-x:auto"><table id="mack-tbl"></table></div>
+    <div style="font-size:11px;color:#888;margin-top:8px;padding:8px;background:#fafaf8;border-radius:6px">
+    * La varianza total incluye t&eacute;rminos de covarianza entre a&ntilde;os de accidente (f&oacute;rmula completa de Mack).
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Par&aacute;metros de dispersi&oacute;n &#945;&#770;&#8336;</div>
+    <div class="card-sub">Varianza de proceso por columna. El &uacute;ltimo valor se extrapola por m&iacute;nimo.</div>
+    <div style="overflow-x:auto"><table id="alpha-tbl"></table></div>
+  </div>
+  <div class="g2">
+    <div class="card">
+      <div class="card-title">Reserva &plusmn; 1 SD por a&ntilde;o de accidente</div>
+      <div class="cw" style="height:240px"><canvas id="ch-msd" role="img" aria-label="Mack SD"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Distribuci&oacute;n lognormal impl&iacute;cita &mdash; Reserva total</div>
+      <div class="cw" style="height:200px"><canvas id="ch-ln" role="img" aria-label="Lognormal Mack"></canvas></div>
+      <div id="ln-info" style="font-size:10px;color:#888;margin-top:6px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- BOOTSTRAP -->
+<div class="section" id="s-bootstrap">
+  <div class="metrics" id="cards-boot"></div>
+  <div class="card">
+    <div class="card-title">Distribuci&oacute;n simulada &mdash; densidad KDE suavizada</div>
+    <div class="card-sub">Banda roja = cola &gt; percentil 99,5%. Azul intenso = rango intercuart&iacute;lico P25&ndash;P75.</div>
+    <div class="cw" style="height:270px"><canvas id="ch-kde" role="img" aria-label="KDE Bootstrap"></canvas></div>
+  </div>
+  <div class="g2">
+    <div class="card">
+      <div class="card-title">Percentiles emp&iacute;ricos</div>
+      <table id="pct-tbl"></table>
+    </div>
+    <div class="card">
+      <div class="card-title">Pools de remuestreo por columna</div>
+      <div class="card-sub">Factores utilizados en cada iteraci&oacute;n Bootstrap</div>
+      <table id="pool-tbl"></table>
+    </div>
+  </div>
+</div>
+
+</div><!-- /main -->
+</div><!-- /layout -->
+
+<!-- MODAL -->
+<div class="modal-overlay" id="outlier-modal" style="display:none">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-icon">&#9888;</div>
+      <div><h3>Factores at&iacute;picos detectados</h3><p id="modal-subtitle"></p></div>
+    </div>
+    <div id="outlier-list"></div>
+    <div class="modal-note">
+      <strong>Ajustar al l&iacute;mite</strong> &mdash; modera el valor extremo al rango esperado (recomendado).<br>
+      <strong>Excluir</strong> &mdash; elimina el factor del pool de esa columna.<br>
+      <strong>Ignorar</strong> &mdash; contin&uacute;a sin cambios; puede inflar los percentiles altos.
+    </div>
+    <div class="modal-actions">
+      <button class="success" onclick="applyOutliers('winsorize')">Ajustar al l&iacute;mite</button>
+      <button class="danger" onclick="applyOutliers('remove')">Excluir</button>
+      <button onclick="applyOutliers('ignore')" style="margin-left:auto;color:#888">Ignorar</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script>
+// ── EXAMPLE (triángulo más amigable, sin outliers extremos) ───────────────────
+const EXAMPLE=`1000\t2200\t3300\t4150\t4900\t5380\t5720\t5880\t5940
+820\t2050\t3180\t4020\t4750\t5210\t5530\t5750
+1150\t2480\t3620\t4480\t5190\t5710\t6050
+940\t2140\t3350\t4280\t5100\t5690
+1080\t2390\t3580\t4520\t5350
+760\t1980\t3140\t4010
+1020\t2310\t3490
+890\t2150
+1100`;
+
+function loadExample(){document.getElementById('tri-input').value=EXAMPLE;setFS('');}
+loadExample();
+
+// ── UNITS ─────────────────────────────────────────────────────────────────────
+let unitDiv=1;
+const unitNames={1:'Unidades',1000:'Miles',1000000:'Millones'};
+function applyUnits(){
+  unitDiv=parseInt(document.getElementById('units-sel').value);
+  document.getElementById('units-label').textContent='Mostrando en: '+unitNames[unitDiv];
+  if(G.Rtot) render();
+}
+
+// ── SLIDER ────────────────────────────────────────────────────────────────────
+function updateSlider(v){
+  const min=5000,max=300000,pct=((v-min)/(max-min)*100).toFixed(1);
+  const sl=document.getElementById('n-sim-slider');
+  sl.style.setProperty('--pct',pct+'%');
+  document.getElementById('sim-display').textContent=parseInt(v).toLocaleString('es-ES');
+}
+updateSlider(5000);
+
+// ── PASTE IMAGE (Ctrl+V) ──────────────────────────────────────────────────────
+document.addEventListener('paste',async e=>{
+  const items=[...e.clipboardData.items];
+  const img=items.find(it=>it.type.startsWith('image/'));
+  if(!img) return;
+  e.preventDefault();
+  const file=img.getAsFile();
+  setFS('Imagen pegada detectada — extrayendo con IA...');
+  await handleFile(file);
+});
+
+// ── FILE ──────────────────────────────────────────────────────────────────────
+async function handleFile(file){
+  if(!file) return; setFS('Procesando '+file.name+'...');
+  try{
+    let txt='';
+    if(file.type.startsWith('image/')){
+      setFS('Extrayendo con IA...');
+      const b64=await toB64(file);
+      const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,
+          messages:[{role:'user',content:[
+            {type:'image',source:{type:'base64',media_type:file.type,data:b64}},
+            {type:'text',text:'Extrae el triangulo de desarrollo acumulado. SOLO numeros, separador decimal punto, sin simbolos de moneda ni separadores de miles. Una fila por anio de accidente (mas antiguo arriba), columnas=anios de desarrollo, separados por tabulacion. Sin texto adicional.'}
+          ]}]})});
+      txt=(await r.json()).content[0].text.trim();
+    } else if(file.name&&file.name.match(/\.xlsx?$/i)){
+      const ab=await file.arrayBuffer();
+      const wb=XLSX.read(ab,{type:'array'});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      txt=XLSX.utils.sheet_to_json(ws,{header:1,defval:''})
+        .filter(r=>r.filter(c=>typeof c==='number'&&c>0).length>=2)
+        .map(r=>r.filter(c=>typeof c==='number'&&c>0).join('\t')).join('\n');
+    } else txt=await file.text();
+    document.getElementById('tri-input').value=txt;
+    setFS('Cargado: '+(file.name||'imagen pegada'));
+  }catch(e){setFS('Error. Pega los datos manualmente.');console.error(e);}
+}
+function toB64(f){return new Promise((res,rej)=>{const r=new FileReader();r.onload=e=>res(e.target.result.split(',')[1]);r.onerror=rej;r.readAsDataURL(f);});}
+function setFS(m){document.getElementById('file-status').textContent=m;}
+const dz=document.getElementById('drop-zone');
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.style.borderColor='#185FA5';});
+dz.addEventListener('dragleave',()=>dz.style.borderColor='');
+dz.addEventListener('drop',e=>{e.preventDefault();dz.style.borderColor='';const f=e.dataTransfer.files[0];if(f)handleFile(f);});
+
+// ── PARSE ─────────────────────────────────────────────────────────────────────
+function parseTriangle(txt){
+  const lines=txt.trim().split('\n').map(l=>l.trim()).filter(l=>l);
+  const n=lines.length;
+  const C=Array.from({length:n},()=>new Array(n).fill(0));
+  lines.forEach((l,i)=>{
+    const sep=l.includes('\t')?'\t':',';
+    l.split(sep).map(v=>parseFloat(v.replace(/[^\d.\-]/g,''))||0)
+     .forEach((v,j)=>{if(j<n)C[i][j]=v;});
+  });
+  return C;
+}
+
+// ── NAV ───────────────────────────────────────────────────────────────────────
+function showSection(id){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.sb-item').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const nid='nav-'+id.replace('s-','');
+  const nel=document.getElementById(nid);
+  if(nel) nel.classList.add('active');
+}
+
+// ── OUTLIER DETECTION ─────────────────────────────────────────────────────────
+function quartiles(arr){
+  const s=[...arr].sort((a,b)=>a-b),n=s.length;
+  return{q1:s[Math.floor(n*.25)],q3:s[Math.floor(n*.75)],
+    med:n%2===0?(s[n/2-1]+s[n/2])/2:s[Math.floor(n/2)],
+    iqr:s[Math.floor(n*.75)]-s[Math.floor(n*.25)]};
+}
+
+function detectOutliers(fe,n){
+  const found=[];
+  for(let k=0;k<n-1;k++){
+    const pool=[];
+    for(let i=0;i<=n-k-2;i++) pool.push({v:fe[i][k],i,k});
+    if(pool.length<2) continue;
+    const vals=pool.map(p=>p.v);
+    const{q1,q3,med,iqr}=quartiles(vals);
+    if(pool.length>=3){
+      const lo=q1-1.5*iqr,hi=q3+1.5*iqr;
+      pool.forEach(p=>{
+        if(p.v<lo||p.v>hi) found.push({col:k,row:p.i,value:p.v,lower:lo,upper:hi,med,method:'IQR Tukey'});
+      });
+      pool.forEach(p=>{
+        if(!found.find(f=>f.col===k&&f.row===p.i)){
+          const others=vals.filter((_,idx)=>pool[idx].i!==p.i);
+          if(others.length>0){
+            const mo=[...others].sort((a,b)=>a-b)[Math.floor(others.length/2)];
+            if(mo>0&&(p.v>4*mo||p.v<mo/4)) found.push({col:k,row:p.i,value:p.v,lower:mo/4,upper:4*mo,med,method:'Ratio mediana'});
+          }
+        }
+      });
+    } else if(pool.length===2){
+      const[a,b]=[vals[0],vals[1]],ratio=Math.max(a,b)/Math.min(a,b);
+      if(ratio>3){const oi=a>b?0:1;const rv=Math.min(a,b);
+        found.push({col:k,row:pool[oi].i,value:pool[oi].v,lower:rv*.5,upper:rv*2,med:rv,method:'Ratio par'});}
+    }
+  }
+  return found;
+}
+
+// ── GLOBALS ───────────────────────────────────────────────────────────────────
+let G={},pendingOutliers=[],pendingFe=null,pendingCorig=null,pendingN=0,outlierTreatment='none';
+
+// ── MACK ──────────────────────────────────────────────────────────────────────
+function calcFactors(C){
+  const n=C.length,f=[];
+  for(let j=1;j<n;j++){let num=0,den=0;for(let k=0;k<n-j;k++){num+=C[k][j];den+=C[k][j-1];}f.push(num/den);}
+  return f;
+}
+function fillMatrix(C,f){const n=C.length;for(let i=1;i<n;i++)for(let j=n-i;j<n;j++)C[i][j]=C[i][j-1]*f[j-1];}
+function calReservas(C){const n=C.length,cal=new Array(n).fill(0);for(let i=1;i<n;i++)cal[i]=C[i][n-1]-C[i][n-1-i];return cal;}
+function alphaP(k,C,f){const n=f.length+1;let s=0;for(let j=0;j<n-k;j++)s+=C[j][k-1]*Math.pow((C[j][k]/C[j][k-1])-f[k-1],2);return s/(n-k-1);}
+function calcAlpha(C,f){const n=C.length,v=[];for(let k=1;k<=n-2;k++)v.push(alphaP(k,C,f));const L=v.length;v.push(Math.min(Math.pow(v[L-1],2)/v[L-2],Math.min(v[L-1],v[L-2])));return v;}
+function varReservaI(iv,C,f,alpha){
+  const n=C.length;let sk=0;
+  for(let kv=n+1-iv;kv<=n-1;kv++){let sj=0;for(let jv=1;jv<=n-kv;jv++)sj+=C[jv-1][kv-1];sk+=(alpha[kv-1]/Math.pow(f[kv-1],2))*(1/C[iv-1][kv-1]+1/sj);}
+  return sk*Math.pow(C[iv-1][n-1],2);
+}
+function varReservaTotal(C,f,alpha){
+  const n=C.length;let si=0;
+  for(let iv=2;iv<=n;iv++){
+    let sj=0;for(let jv=iv+1;jv<=n;jv++)sj+=C[jv-1][n-1];
+    let sk=0;for(let kv=n+1-iv;kv<=n-1;kv++){let sn=0;for(let nv=1;nv<=n-kv;nv++)sn+=C[nv-1][kv-1];sk+=(2*alpha[kv-1]/Math.pow(f[kv-1],2))/sn;}
+    si+=varReservaI(iv,C,f,alpha)+C[iv-1][n-1]*sj*sk;
+  }
+  return si;
+}
+function paramLognormal(R,varR){const s2=Math.log(1+varR/Math.pow(R,2));return{mu:Math.log(R)-s2/2,sigma:Math.sqrt(s2)};}
+
+// ── BOOTSTRAP ─────────────────────────────────────────────────────────────────
+function calcFEmp(C){const n=C.length,fe=Array.from({length:n},()=>new Array(n-1).fill(null));for(let i=0;i<n;i++)for(let k=0;k<n-1-i;k++)fe[i][k]=C[i][k+1]/C[i][k];return fe;}
+function getPool(fe,k,n){const p=[];for(let i=0;i<=n-k-2;i++)if(fe[i][k]!==null)p.push(fe[i][k]);return p;}
+function applyTreatmentToFe(fe,outliers,method,n){
+  const fc=fe.map(r=>[...r]);
+  if(method==='ignore') return fc;
+  outliers.forEach(o=>{
+    if(method==='winsorize'){const pool=getPool(fc,o.col,n);const{q1,q3,iqr}=quartiles(pool);const lo=q1-1.5*iqr,hi=q3+1.5*iqr;fc[o.row][o.col]=Math.min(Math.max(fc[o.row][o.col],lo),hi);}
+    else if(method==='remove') fc[o.row][o.col]=null;
+  });
+  return fc;
+}
+function remuestraTriangulo(Corig,fe,n){
+  const t=Array.from({length:n},()=>new Array(n).fill(0));
+  for(let i=0;i<n;i++)t[i][0]=Corig[i][0];
+  for(let i=0;i<n;i++)for(let k=0;k<n-1-i;k++){const p=getPool(fe,k,n);t[i][k+1]=t[i][k]*p[Math.floor(Math.random()*p.length)];}
+  return t;
+}
+function clBoot(Cb,n){const fv=calcFactors(Cb);for(let i=1;i<n;i++)for(let j=n-i;j<n;j++)Cb[i][j]=Cb[i][j-1]*fv[j-1];return calReservas(Cb).reduce((a,b)=>a+b,0);}
+async function runBootstrap(Corig,fe,n,N,onProg){
+  const res=new Float64Array(N);const chunk=Math.min(2000,N);let lastBoot=null;
+  for(let i=0;i<N;i+=chunk){const end=Math.min(i+chunk,N);
+    for(let k=i;k<end;k++){const cb=remuestraTriangulo(Corig,fe,n);res[k]=clBoot(cb,n);if(k===end-1)lastBoot=cb;}
+    onProg(end/N);await new Promise(r=>setTimeout(r,0));}
+  return{res,lastBoot};
+}
+function percentilEmp(arr,p){const s=[...arr].sort((a,b)=>a-b);return s[Math.floor(p*s.length)];}
+function kde(data,pts){
+  const arr=[...data].sort((a,b)=>a-b),n=arr.length,mean=arr.reduce((a,b)=>a+b,0)/n;
+  const sd=Math.sqrt(arr.reduce((a,b)=>a+(b-mean)*(b-mean),0)/n);
+  const bw=1.06*sd*Math.pow(n,-0.2),mn=arr[0],mx=arr[n-1],step=(mx-mn)/(pts-1);
+  const xs=[],ys=[];
+  for(let i=0;i<pts;i++){const x=mn+i*step;let s=0;for(let j=0;j<n;j++){const u=(x-arr[j])/bw;s+=Math.exp(-.5*u*u);}xs.push(x);ys.push(s/(n*bw*Math.sqrt(2*Math.PI)));}
+  return{xs,ys};
+}
+function lnDens(x,mu,sig){if(x<=0)return 0;return(1/(x*sig*Math.sqrt(2*Math.PI)))*Math.exp(-Math.pow(Math.log(x)-mu,2)/(2*sig*sig));}
+
+// ── FORMAT ────────────────────────────────────────────────────────────────────
+function fmtU(n){const v=n/unitDiv;return isNaN(v)?'&mdash;':Math.round(v).toLocaleString('es-ES');}
+const fmt=n=>isNaN(n)?'&mdash;':Math.round(n).toLocaleString('es-ES');
+const fmt4=n=>isNaN(n)?'&mdash;':n.toFixed(4);
+const fmtAlpha=n=>{if(isNaN(n))return'&mdash;';if(Math.abs(n)<0.001)return n.toFixed(6);return n.toFixed(4);};
+const fmtP=n=>(!isFinite(n)||isNaN(n))?'&mdash;':(n*100).toFixed(1)+'%';
+
+// ── CHARTS ────────────────────────────────────────────────────────────────────
+const CH={};const dc=id=>{if(CH[id]){CH[id].destroy();delete CH[id];}};
+
+// ── MAIN FLOW ─────────────────────────────────────────────────────────────────
+async function runAll(){
+  const txt=document.getElementById('tri-input').value.trim();
+  if(!txt){alert('Introduce el triangulo.');return;}
+  const N=parseInt(document.getElementById('n-sim-slider').value);
+  const Corig=parseTriangle(txt);
+  const n=Corig.length;
+  const fe=calcFEmp(Corig);
+  const outliers=detectOutliers(fe,n);
+  pendingOutliers=outliers;pendingFe=fe;pendingCorig=Corig;pendingN=N;
+  if(outliers.length>0) showOutlierModal(outliers,fe,n);
+  else{outlierTreatment='none';await continueRun(Corig,fe,[],n,N);}
+}
+
+function showOutlierModal(outliers,fe,n){
+  document.getElementById('modal-subtitle').textContent=outliers.length+' factor(es) en '+[...new Set(outliers.map(o=>o.col))].length+' columna(s)';
+  document.getElementById('outlier-list').innerHTML=outliers.map(o=>`<div class="outlier-row">
+    <span class="or-col">${o.col+1}&rarr;${o.col+2}</span>
+    <span>Year ${o.row+1}</span>
+    <span class="or-val">${o.value.toFixed(4)}</span>
+    <span class="chip chip-gray">${o.method}</span>
+    <span class="or-range">esperado [${o.lower.toFixed(3)}, ${o.upper.toFixed(3)}]</span>
+  </div>`).join('');
+  document.getElementById('outlier-modal').style.display='flex';
+}
+
+async function applyOutliers(method){
+  document.getElementById('outlier-modal').style.display='none';
+  outlierTreatment=method;
+  const feTreated=applyTreatmentToFe(pendingFe,pendingOutliers,method,pendingCorig.length);
+  await continueRun(pendingCorig,feTreated,pendingOutliers,pendingCorig.length,pendingN);
+}
+
+async function continueRun(Corig,fe,outliers,n,N){
+  document.getElementById('btn-run').disabled=true;
+  document.getElementById('prog-wrap').style.display='block';
+  sp(0,'Calculando Mack...');
+  const Cm=Corig.map(r=>[...r]);
+  const fv=calcFactors(Cm);fillMatrix(Cm,fv);
+  const Rv=calReservas(Cm);
+  const Rtot=Rv.reduce((a,b)=>a+b,0);
+  const alpha=calcAlpha(Cm,fv);
+  const varRows=[];for(let iv=2;iv<=n;iv++)varRows.push(varReservaI(iv,Cm,fv,alpha));
+  // CRITICAL: use varReservaTotal (includes covariance), NOT sum of varRows
+  const varTot=varReservaTotal(Cm,fv,alpha);
+  const sdTot=Math.sqrt(Math.abs(varTot));
+  const ln=paramLognormal(Rtot,Math.abs(varTot));
+
+  sp(0.08,'Bootstrap en progreso...');
+  const{res:Rsim,lastBoot}=await runBootstrap(Corig,fe,n,N,p=>
+    sp(0.08+p*.88,`Bootstrap: ${Math.round(p*100)}% &mdash; ${Math.round(p*N).toLocaleString('es-ES')} / ${N.toLocaleString('es-ES')}`));
+
+  sp(0.97,'Calculando estadisticos...');
+  const simArr=Array.from(Rsim).filter(v=>v>0&&isFinite(v));
+  const pctLvls=[0.5,0.75,0.9,0.95,0.99,0.995];
+  const pctVals=pctLvls.map(p=>percentilEmp(simArr,p));
+  const bootMean=simArr.reduce((a,b)=>a+b,0)/simArr.length;
+  const bootSD=Math.sqrt(simArr.reduce((a,b)=>a+(b-bootMean)*(b-bootMean),0)/simArr.length);
+
+  G={Corig,Cm,fv,fe,Rv,Rtot,alpha,varRows,varTot,sdTot,ln,simArr,pctLvls,pctVals,bootMean,bootSD,N,n,lastBoot,outliers,outlierTreatment};
+  sp(1,'Renderizando...');
+  render();
+  document.getElementById('prog-wrap').style.display='none';
+  document.getElementById('btn-run').disabled=false;
+  document.getElementById('hdr-status').textContent='n='+n+' | N='+N.toLocaleString('es-ES');
+  ['resumen','triangulos','mack','bootstrap'].forEach(id=>{
+    const el=document.getElementById('nav-'+id);
+    if(el){el.classList.add('done');const b=document.getElementById('badge-'+id);if(b)b.style.display='';}
+  });
+  document.getElementById('units-label').textContent='Mostrando en: '+unitNames[unitDiv];
+  showSection('s-resumen');
+}
+
+function sp(p,m){document.getElementById('pbar').style.width=(p*100)+'%';document.getElementById('smsg').textContent=m;}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function render(){
+  const{Cm,fv,fe,Rv,Rtot,alpha,varRows,sdTot,ln,simArr,pctVals,bootMean,bootSD,N,n,outliers,outlierTreatment}=G;
+  const ud=unitDiv;
+  const fU=v=>Math.round(v/ud).toLocaleString('es-ES');
+  const ylbl=unitDiv===1?'Valor':unitDiv===1000?'Miles':unitDiv===1000000?'Millones':'';
+  const unitSuffix=unitDiv>1?' ('+ylbl.toLowerCase()+')':'';
+  const labels=Array.from({length:n-1},(_,i)=>'Year '+(i+2));
+  const mackR=Rv.slice(1);
+  const sdArr=varRows.map(v=>Math.sqrt(Math.abs(v)));
+
+  // Treatment banner
+  const banner=document.getElementById('treatment-banner');
+  const treatLabel={winsorize:'Ajuste al limite',remove:'Exclusion',ignore:'Sin tratamiento'}[outlierTreatment]||'';
+  if(outliers.length>0&&outlierTreatment!=='ignore'){
+    banner.style.display='flex';
+    banner.innerHTML='<span style="font-size:14px">&#9888;</span><div><strong>Tratamiento aplicado: '+treatLabel+'</strong> &mdash; '+outliers.length+' factor(es) en columnas ['+[...new Set(outliers.map(o=>(o.col+1)+'&rarr;'+(o.col+2)))].join(', ')+']</div>';
+  } else if(outliers.length>0&&outlierTreatment==='ignore'){
+    banner.style.display='flex';
+    banner.innerHTML='<span>&#9888;</span><div><strong>Sin tratamiento.</strong> '+outliers.length+' factor(es) atipico(s) detectado(s). Los percentiles altos pueden estar inflados.</div>';
+  } else banner.style.display='none';
+
+  // RESUMEN metrics
+  document.getElementById('cards-res').innerHTML=`
+    <div class="metric accent"><div class="mlabel">Reserva total Mack</div><div class="mval">${fU(Rtot)}${unitSuffix?'<span style="font-size:11px;font-weight:400;color:#888"> '+ylbl+'</span>':''}</div><div class="msub">Chain-Ladder estocastico</div></div>
+    <div class="metric"><div class="mlabel">SD Mack (con cov.)</div><div class="mval">${fU(sdTot)}</div><div class="msub">CV = ${fmtP(sdTot/Rtot)}</div></div>
+    <div class="metric"><div class="mlabel">Media Bootstrap</div><div class="mval">${fU(bootMean)}</div><div class="msub">Mediana: ${fU(pctVals[0])}</div></div>
+    <div class="metric accent"><div class="mlabel">Percentil 99,5% Bootstrap</div><div class="mval">${fU(pctVals[5])}</div><div class="msub">Recargo: +${fmtP((pctVals[5]-bootMean)/bootMean)}</div></div>
+  `;
+
+  dc('comp');
+  CH['comp']=new Chart(document.getElementById('ch-comp'),{type:'bar',
+    data:{labels,datasets:[{label:'Reserva',data:mackR.map(v=>+(v/ud).toFixed(2)),backgroundColor:'rgba(24,95,165,0.55)',borderColor:'#185FA5',borderWidth:1,borderRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:i=>`Reserva: ${fU(i.raw*ud)}`}}},
+      scales:{y:{title:{display:true,text:ylbl,font:{size:10}},ticks:{callback:v=>fU(v*ud)},grid:{color:'rgba(0,0,0,.04)'}},x:{grid:{display:false}}}}});
+
+  dc('both');
+  const sB=simArr.length>8000?Array.from({length:8000},()=>simArr[Math.floor(Math.random()*simArr.length)]):simArr;
+  const kd=kde(sB.map(v=>v/ud),250);
+  const lnYs=kd.xs.map(x=>lnDens(x*ud,ln.mu,ln.sigma));
+  const kmax=Math.max(...kd.ys),lmax=Math.max(...lnYs)||1;
+  CH['both']=new Chart(document.getElementById('ch-both'),{type:'line',
+    data:{labels:kd.xs.map(v=>Math.round(v)),datasets:[
+      {label:'Bootstrap KDE',data:kd.ys,borderColor:'#185FA5',backgroundColor:'rgba(24,95,165,0.08)',fill:true,pointRadius:0,tension:0.4,borderWidth:2},
+      {label:'Mack lognormal',data:lnYs.map(v=>v*(kmax/lmax)),borderColor:'#BA7517',backgroundColor:'rgba(186,117,23,0.06)',fill:true,pointRadius:0,tension:0.4,borderWidth:2,borderDash:[5,3]}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:true,labels:{boxWidth:10,font:{size:10}}}},
+      scales:{x:{ticks:{maxTicksLimit:5,callback:(v,i)=>fU(kd.xs[i]*ud||0)},grid:{color:'rgba(0,0,0,.03)'}},y:{ticks:{display:false},grid:{display:false}}}}});
+
+  // TRIANGULOS
+  const mkTriTable=(C,Rv,showObs)=>{
+    let h=`<thead><tr><th>Year</th>`;
+    for(let j=0;j<n;j++) h+=`<th>Dev ${j+1}</th>`;
+    h+=`<th>Reserva${unitSuffix}</th></tr></thead><tbody>`;
+    for(let i=0;i<n;i++){
+      h+=`<tr><td>Y${i+1}</td>`;
+      for(let j=0;j<n;j++){
+        const obs=showObs&&j<=n-1-i;
+        h+=C[i][j]>0?`<td class="${obs?'obs':'proj'}">${fU(C[i][j])}</td>`:'<td></td>';
+      }
+      h+=`<td style="font-weight:600">${i>0?fU(Rv[i]):'&mdash;'}</td></tr>`;
+    }
+    h+=`<tr class="tot"><td>Total</td>${'<td></td>'.repeat(n)}<td>${fU(Rv.reduce((a,b)=>a+b,0))}</td></tr></tbody>`;
+    return h;
+  };
+  document.getElementById('tri-cl').innerHTML=mkTriTable(Cm,Rv,true);
+
+  // Heatmap
+  let hh=`<thead><tr><th>Year</th>`;for(let j=0;j<n;j++)hh+=`<th>Dev ${j+1}</th>`;hh+=`</tr></thead><tbody>`;
+  for(let i=0;i<n;i++){
+    const rv=Cm[i].filter(v=>v>0),rmax=Math.max(...rv),rmin=Math.min(...rv);
+    hh+=`<tr><td>Y${i+1}</td>`;
+    for(let j=0;j<n;j++){
+      if(Cm[i][j]>0){
+        const t=rmax===rmin?.5:(Cm[i][j]-rmin)/(rmax-rmin);
+        const obs=j<=n-1-i;
+        hh+=`<td style="background:rgba(${obs?'24,95,165':'186,117,23'},${(.1+t*.7).toFixed(2)});color:${t>.6?'#fff':'#1a1a1a'}">${fU(Cm[i][j])}</td>`;
+      } else hh+='<td></td>';
+    }
+    hh+='</tr>';
+  }
+  hh+='</tbody>';document.getElementById('tri-heat').innerHTML=hh;
+
+  let ft=`<thead><tr><th>Trans.</th>`;fv.forEach((_,i)=>ft+=`<th>Dev ${i+1}&rarr;${i+2}</th>`);ft+=`</tr></thead><tbody><tr><td>f&#770;&#8336;</td>`;fv.forEach(v=>ft+=`<td>${fmt4(v)}</td>`);ft+=`</tr></tbody>`;
+  document.getElementById('fac-tbl').innerHTML=ft;
+
+  dc('fac');
+  CH['fac']=new Chart(document.getElementById('ch-fac'),{type:'bar',
+    data:{labels:fv.map((_,i)=>`${i+1}&rarr;${i+2}`),datasets:[{label:'Factor',data:fv,backgroundColor:'rgba(24,95,165,0.45)',borderColor:'#185FA5',borderWidth:1,borderRadius:3}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>v.toFixed(3)},grid:{color:'rgba(0,0,0,.04)'}},x:{grid:{display:false}}}}});
+
+  const outlierSet=new Set(outliers.map(o=>`${o.row}_${o.col}`));
+  let et=`<thead><tr><th>Year</th>`;for(let k=0;k<n-1;k++)et+=`<th>Dev ${k+1}&rarr;${k+2}</th>`;et+=`</tr></thead><tbody>`;
+  for(let i=0;i<n;i++){
+    et+=`<tr><td>Y${i+1}</td>`;
+    for(let k=0;k<n-1;k++){const isO=outlierSet.has(`${i}_${k}`);et+=fe[i][k]!=null?`<td class="${isO?'outlier-cell':'obs'}">${fmt4(fe[i][k])}${isO?' &#9888;':''}</td>`:'<td></td>';}
+    et+='</tr>';
+  }
+  et+='</tbody>';document.getElementById('tri-femp').innerHTML=et;
+  const oc=document.getElementById('outlier-chip');
+  if(outliers.length>0){oc.style.display='';oc.textContent=outliers.length+' valor(es) atipico(s)';}else oc.style.display='none';
+
+  // MACK TABLE — uses varTot (with covariance) for total row
+  let mt=`<thead><tr><th>Year</th><th>Ultimo obs. C(i,n-i)</th><th>Proy. ultimo periodo C(i,n)</th><th>Reserva R&#770;&#7522;</th><th>Varianza &#963;&#770;&#178;&#7522;</th><th>SD Mack</th><th>CV</th></tr></thead><tbody>`;
+  varRows.forEach((vr,idx)=>{
+    const iv=idx+2,sd=Math.sqrt(Math.abs(vr)),res=Rv[idx+1];
+    mt+=`<tr><td>Y${iv}</td><td>${fU(Cm[iv-1][n-iv])}</td><td>${fU(Cm[iv-1][n-1])}</td><td><strong>${fU(res)}</strong></td><td>${fU(vr)}</td><td>${fU(sd)}</td><td>${fmtP(res>0?sd/res:0)}</td></tr>`;
+  });
+  // TOTAL: use varTot (covariance-adjusted), sdTot, cvTot
+  mt+=`<tr class="tot"><td>Total</td><td>&mdash;</td><td>&mdash;</td><td><strong>${fU(Rtot)}</strong></td><td>${fU(G.varTot)}<sup>*</sup></td><td>${fU(sdTot)}</td><td>${fmtP(sdTot/Rtot)}</td></tr></tbody>`;
+  document.getElementById('mack-tbl').innerHTML=mt;
+
+  let at=`<thead><tr><th>Trans.</th>`;alpha.forEach((_,i)=>at+=`<th>Dev ${i+1}&rarr;${i+2}</th>`);at+=`</tr></thead><tbody><tr><td>&#945;&#770;&#8336;</td>`;
+  alpha.forEach(v=>at+=`<td>${fmtAlpha(v)}</td>`);at+=`</tr></tbody>`;
+  document.getElementById('alpha-tbl').innerHTML=at;
+  document.getElementById('ln-info').innerHTML=`&mu; = ${ln.mu.toFixed(4)} &nbsp;|&nbsp; &sigma; = ${ln.sigma.toFixed(4)} &nbsp;|&nbsp; E[R] &asymp; ${fU(Math.exp(ln.mu+0.5*ln.sigma*ln.sigma))} &nbsp;|&nbsp; SD &asymp; ${fU(sdTot)}`;
+
+  dc('msd');
+  CH['msd']=new Chart(document.getElementById('ch-msd'),{type:'bar',
+    data:{labels,datasets:[
+      {label:'Reserva',data:mackR.map(v=>+(v/ud).toFixed(2)),backgroundColor:'rgba(24,95,165,0.5)',borderColor:'#185FA5',borderWidth:1,borderRadius:4,order:2},
+      {label:'+1 SD',data:mackR.map((v,i)=>+((v+sdArr[i])/ud).toFixed(2)),type:'line',borderColor:'#E24B4A',pointRadius:4,pointBackgroundColor:'#E24B4A',fill:false,borderDash:[4,3],order:1},
+      {label:'-1 SD',data:mackR.map((v,i)=>+(Math.max(0,v-sdArr[i])/ud).toFixed(2)),type:'line',borderColor:'#E24B4A',pointRadius:4,pointBackgroundColor:'#E24B4A',fill:false,borderDash:[4,3],order:1}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{boxWidth:10,font:{size:10}}}},
+      scales:{y:{ticks:{callback:v=>fU(v*ud)},grid:{color:'rgba(0,0,0,.04)'}},x:{grid:{display:false}}}}});
+
+  dc('ln');const{mu,sigma}=ln;
+  const lmin=Math.exp(mu-3.5*sigma)/ud,lmax2=Math.exp(mu+3.5*sigma)/ud;
+  const lxs=[],lys_=[];
+  for(let i=0;i<300;i++){const x=lmin+i*(lmax2-lmin)/299;lxs.push(x);lys_.push(lnDens(x*ud,mu,sigma));}
+  const q995ln=Math.exp(mu+sigma*2.576)/ud;
+  CH['ln']=new Chart(document.getElementById('ch-ln'),{type:'line',
+    data:{labels:lxs.map(v=>Math.round(v)),datasets:[{label:'Lognormal',data:lys_,borderColor:'#BA7517',backgroundColor:lxs.map(x=>x>q995ln?'rgba(226,75,74,0.18)':'rgba(186,117,23,0.1)'),fill:true,pointRadius:0,tension:0.4,borderWidth:2}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{maxTicksLimit:5,callback:(v,i)=>fU(lxs[i]*ud||0)},grid:{color:'rgba(0,0,0,.04)'}},y:{ticks:{display:false},grid:{display:false}}}}});
+
+  // BOOTSTRAP
+  document.getElementById('cards-boot').innerHTML=`
+    <div class="metric accent"><div class="mlabel">Media Bootstrap</div><div class="mval">${fU(bootMean)}</div><div class="msub">Reserva esperada simulada</div></div>
+    <div class="metric"><div class="mlabel">Mediana Bootstrap</div><div class="mval">${fU(pctVals[0])}</div><div class="msub">Percentil 50%</div></div>
+    <div class="metric"><div class="mlabel">SD Bootstrap</div><div class="mval">${fU(bootSD)}</div><div class="msub">CV = ${fmtP(bootSD/bootMean)}</div></div>
+    <div class="metric accent"><div class="mlabel">Percentil 99,5%</div><div class="mval">${fU(pctVals[5])}</div><div class="msub">Recargo: +${fmtP((pctVals[5]-bootMean)/bootMean)}</div></div>
+  `;
+
+  dc('kde');
+  const sK=simArr.length>10000?Array.from({length:10000},()=>simArr[Math.floor(Math.random()*simArr.length)]):simArr;
+  const kdK=kde(sK.map(v=>v/ud),300);
+  const v995=pctVals[5]/ud,p25=pctVals[0]/ud,p75=pctVals[2]/ud;
+  CH['kde']=new Chart(document.getElementById('ch-kde'),{type:'bar',
+    data:{labels:kdK.xs.map(v=>Math.round(v)),datasets:[
+      {label:'Densidad',data:kdK.ys,backgroundColor:kdK.xs.map(x=>x>v995?'rgba(226,75,74,0.55)':x>=p25&&x<=p75?'rgba(24,95,165,0.4)':'rgba(24,95,165,0.18)'),borderColor:'transparent',barPercentage:1,categoryPercentage:1,order:2},
+      {label:'KDE',data:kdK.ys,type:'line',borderColor:'#185FA5',borderWidth:2,pointRadius:0,tension:0.4,fill:false,order:1}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{x:{ticks:{maxTicksLimit:7,callback:(v,i)=>fU(kdK.xs[i]*ud||0)},grid:{color:'rgba(0,0,0,.03)'}},y:{ticks:{display:false},grid:{display:false}}}}});
+
+  const pLabels=['50% (mediana)','75%','90%','95%','99%','99,5%'];
+  let pt='<thead><tr><th>Percentil</th><th>Reserva</th><th>vs Media</th><th>vs Mack</th></tr></thead><tbody>';
+  pctVals.forEach((v,i)=>pt+=`<tr style="${i===5?'font-weight:600':''}"><td>${pLabels[i]}</td><td>${fU(v)}</td><td>+${fmtP((v-bootMean)/bootMean)}</td><td>${fmtP((v-Rtot)/Rtot)}</td></tr>`);
+  pt+='</tbody>';document.getElementById('pct-tbl').innerHTML=pt;
+
+  let pl='<thead><tr><th>Col.</th><th>Pool (factores)</th><th>Media</th><th>n</th></tr></thead><tbody>';
+  for(let k=0;k<n-1;k++){const p=getPool(fe,k,n),m=p.reduce((a,b)=>a+b,0)/p.length;
+    pl+=`<tr><td>${k+1}&rarr;${k+2}</td><td style="font-size:10px">${p.map(v=>v.toFixed(3)).join(' | ')}</td><td>${m.toFixed(4)}</td><td>${p.length}</td></tr>`;}
+  pl+='</tbody>';document.getElementById('pool-tbl').innerHTML=pl;
+}
+
+// ── DOWNLOADS ─────────────────────────────────────────────────────────────────
+function downloadCSV(){
+  if(!G.Rtot){alert('Proyecta primero.');return;}
+  const{Rv,Rtot,fv,varRows,sdTot,pctVals,bootMean,bootSD,N,n,Cm,outlierTreatment,outliers,varTot}=G;
+  const ud=unitDiv,un=unitNames[ud];
+  const fU=v=>Math.round(v/ud);
+  const rows=[['IBNR RESERVING - RESULTADOS'],['Generado',new Date().toLocaleString('es-ES')],
+    ['Unidades',un],
+    outlierTreatment!=='none'?['Outliers',outlierTreatment,outliers.length+' factor(es)']:['Outliers','Sin tratamiento'],
+    [''],['MACK'],['Year','Ultimo obs.','Proyectado C(i,n)','Reserva','Varianza','SD Mack','CV']];
+  varRows.forEach((vr,idx)=>{const iv=idx+2,sd=Math.sqrt(Math.abs(vr)),res=Rv[idx+1];
+    rows.push([`Y${iv}`,fU(Cm[iv-1][n-iv]),fU(Cm[iv-1][n-1]),fU(res),fU(vr),fU(sd),res>0?(sd/res).toFixed(4):0]);});
+  rows.push(['Total','','',fU(Rtot),fU(varTot)+'*',fU(sdTot),(sdTot/Rtot).toFixed(4)]);
+  rows.push(['* Varianza total incluye covarianza entre anos de accidente']);
+  rows.push([''],['Factores CL'],['Trans.',...fv.map((_,i)=>`${i+1}->${i+2}`)],['f_k',...fv.map(v=>v.toFixed(4))]);
+  rows.push([''],['BOOTSTRAP'],['N sims',N],['Media',fU(bootMean)],['SD',fU(bootSD)],[''],['Percentil','Reserva']);
+  G.pctVals.forEach((v,i)=>rows.push([[50,75,90,95,99,99.5][i]+'%',fU(v)]));
+  dl(new Blob([rows.map(r=>r.join(',')).join('\n')],{type:'text/csv'}),'IBNR_reserving.csv');
+}
+
+function downloadExcel(){
+  if(!G.Rtot){alert('Proyecta primero.');return;}
+  const{Cm,Rv,Rtot,fv,alpha,varRows,sdTot,pctVals,bootMean,bootSD,N,n,outlierTreatment,outliers,varTot}=G;
+  const ud=unitDiv,un=unitNames[ud],fU=v=>Math.round(v/ud);
+  const wb=XLSX.utils.book_new();
+  const triData=[['Triangulo completado - Chain-Ladder','Unidades: '+un],['Year',...Array.from({length:n},(_,j)=>`Dev ${j+1}`),'Reserva']];
+  for(let i=0;i<n;i++)triData.push([`Y${i+1}`,...Cm[i].map(v=>fU(v)),i>0?fU(Rv[i]):'']);
+  triData.push(['Total',...new Array(n).fill(''),fU(Rtot)]);
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(triData),'Triangulo CL');
+  const mackData=[['METODO DE MACK','Unidades: '+un],
+    outlierTreatment!=='none'?['Outliers tratados',outlierTreatment]:[''],
+    ['Year','Ultimo obs.','Proyectado C(i,n)','Reserva','Varianza','SD Mack','CV']];
+  varRows.forEach((vr,idx)=>{const iv=idx+2,sd=Math.sqrt(Math.abs(vr)),res=Rv[idx+1];
+    mackData.push([`Y${iv}`,fU(Cm[iv-1][n-iv]),fU(Cm[iv-1][n-1]),fU(res),fU(vr),fU(sd),res>0?+(sd/res).toFixed(4):0]);});
+  mackData.push(['Total','','',fU(Rtot),fU(varTot)+'*',fU(sdTot),+(sdTot/Rtot).toFixed(4)]);
+  mackData.push(['* Varianza total incluye covarianza (formula Mack completa)']);
+  mackData.push([],['Factores'],['Trans.',...fv.map((_,i)=>`${i+1}->${i+2}`)],['f_k',...fv]);
+  mackData.push([],['Alpha'],['k',...alpha.map((_,i)=>i+1)],['alpha_k',...alpha]);
+  mackData.push([],['Lognormal mu',G.ln.mu,'sigma',G.ln.sigma]);
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(mackData),'Mack');
+  const bootData=[['BOOTSTRAP CL','Unidades: '+un],['N sims',N],['Media',fU(bootMean)],['SD',fU(bootSD)],['CV',+(bootSD/bootMean).toFixed(4)],
+    outlierTreatment!=='none'?['Outliers',outlierTreatment]:[''],[''],['Percentil','Reserva','vs Media','vs Mack']];
+  G.pctVals.forEach((v,i)=>bootData.push([[50,75,90,95,99,99.5][i]+'%',fU(v),fU(v-bootMean),fU(v-Rtot)]));
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(bootData),'Bootstrap');
+  XLSX.writeFile(wb,'IBNR_reserving.xlsx');
+}
+
+function downloadPDF(){
+  if(!G.Rtot){alert('Proyecta primero.');return;}
+  if(!window.jspdf){alert('Libreria PDF no cargada. Intenta de nuevo.');return;}
+  const{jsPDF}=window.jspdf;
+  const doc=new jsPDF({unit:'mm',format:'a4'});
+  const W=210,M=14,CW=W-2*M;
+  const ud=unitDiv,un=unitNames[ud];
+  const fU=v=>Math.round(v/ud).toLocaleString('es-ES');
+  const{Rtot,sdTot,pctVals,bootMean,bootSD,varRows,Rv,Cm,fv,alpha,ln,n,outliers,outlierTreatment,simArr,N,varTot}=G;
+
+  let y=M;
+
+  const newPage=()=>{
+    doc.addPage(); y=M;
+    doc.setFillColor(13,59,110);doc.rect(0,0,W,7,'F');
+    doc.setFontSize(7);doc.setFont('helvetica','normal');doc.setTextColor(255,255,255);
+    doc.text('IBNR Reserving | Mack & Bootstrap CL',M,5);
+    doc.text('Javier Castillo & Sol Formichelli',W-M,5,{align:'right'});
+    doc.setTextColor(30,30,30); y=13;
+  };
+
+  const chk=(h=8)=>{ if(y+h>278) newPage(); };
+
+  const section=t=>{
+    chk(13); y+=2;
+    doc.setFillColor(13,59,110);doc.rect(M,y,CW,8,'F');
+    doc.setFontSize(9.5);doc.setFont('helvetica','bold');doc.setTextColor(255,255,255);
+    doc.text(t,M+3,y+5.5); y+=12;
+    doc.setTextColor(30,30,30);doc.setFont('helvetica','normal');
+  };
+
+  const subhead=t=>{
+    chk(10); y+=2;
+    doc.setFontSize(8.5);doc.setFont('helvetica','bold');doc.setTextColor(24,95,165);
+    doc.text(t,M,y); y+=6;
+    doc.setTextColor(30,30,30);doc.setFont('helvetica','normal');
+  };
+
+  const hline=()=>{ chk(4);doc.setDrawColor(200,200,200);doc.line(M,y,W-M,y);y+=3; };
+
+  // row: cols=string[], ws=number[], bold, gray
+  const ROW_H=6.5;
+  const row=(cols,ws,bold=false,gray=false)=>{
+    chk(ROW_H+1);
+    if(gray){doc.setFillColor(243,246,252);doc.rect(M,y-0.5,CW,ROW_H,'F');}
+    doc.setFontSize(8);doc.setFont('helvetica',bold?'bold':'normal');
+    doc.setTextColor(30,30,30);
+    let x=M;
+    cols.forEach((c,i)=>{
+      const s=String(c??'');
+      // right-align if looks numeric (contains digits, possibly with . , %)
+      const isR=i>0&&/^[\d\.\,\%\+\-\s]+$/.test(s.trim())&&s.trim()!=='';
+      doc.text(s, isR ? x+ws[i]-1 : x+1, y+4, {maxWidth:ws[i]-2, align: isR?'right':'left'});
+      x+=ws[i];
+    });
+    y+=ROW_H;
+  };
+
+  // ── COVER ──────────────────────────────────────────────────────────────────
+  doc.setFillColor(13,59,110);doc.rect(0,0,W,27,'F');
+  doc.setFillColor(24,95,165);doc.rect(0,21,W,6,'F');
+  doc.setTextColor(255,255,255);
+  doc.setFontSize(16);doc.setFont('helvetica','bold');
+  doc.text('Informe de Reservas IBNR',M,12);
+  doc.setFontSize(9);doc.setFont('helvetica','normal');
+  doc.text('Metodo de Mack (1993) & Bootstrap Chain-Ladder',M,18);
+  doc.text(new Date().toLocaleDateString('es-ES'),W-M,25,{align:'right'});
+  doc.text('Unidades: '+un+'  |  N simulaciones: '+N.toLocaleString('es-ES')+'  |  Javier Castillo & Sol Formichelli',M,25);
+  doc.setTextColor(30,30,30); y=33;
+
+  if(outliers.length>0&&outlierTreatment!=='ignore'){
+    chk(10);
+    doc.setFillColor(255,248,225);doc.rect(M,y,CW,8,'F');
+    doc.setFontSize(7.5);doc.setFont('helvetica','bold');doc.setTextColor(99,56,6);
+    doc.text('Tratamiento aplicado: '+(outlierTreatment==='winsorize'?'Ajuste al limite':'Exclusion')+
+      ' — '+outliers.length+' factor(es) en columnas ['+
+      [...new Set(outliers.map(o=>(o.col+1)+'->'+(o.col+2)))].join(', ')+']',M+2,y+5);
+    doc.setTextColor(30,30,30); y+=12;
+  }
+
+  // ── RESUMEN ────────────────────────────────────────────────────────────────
+  section('RESUMEN EJECUTIVO');
+  const A=46,B=38; // label, value widths — two columns side by side
+  row(['MACK','','BOOTSTRAP',''],[A,B,A,B],true,true);
+  hline();
+  row(['Reserva total',         fU(Rtot),          'Media Bootstrap',    fU(bootMean)],       [A,B,A,B]);
+  row(['SD (con covarianza)',   fU(sdTot),          'SD Bootstrap',       fU(bootSD)],         [A,B,A,B]);
+  row(['CV Mack',               fmtP(sdTot/Rtot),   'CV Bootstrap',       fmtP(bootSD/bootMean)],[A,B,A,B]);
+  row(['Percentil 99,5% LN',   fU(Math.exp(ln.mu+ln.sigma*2.576)), 'Percentil 99,5% Boot', fU(pctVals[5])],[A,B,A,B]);
+  row(['N sims validas',        simArr.length.toLocaleString('es-ES'),'',''],[A,B,A,B]);
+  y+=2;
+
+  // ── MACK ───────────────────────────────────────────────────────────────────
+  section('MACK — Reservas por ano de accidente');
+  const wm=[14,30,30,26,30,22,16];
+  row(['Year','Ultimo obs.','Proy. C(i,n)','Reserva','Varianza','SD','CV'],wm,true,true);
+  hline();
+  varRows.forEach((vr,idx)=>{
+    const iv=idx+2,sd=Math.sqrt(Math.abs(vr)),res=Rv[idx+1];
+    row([`Y${iv}`,fU(Cm[iv-1][n-iv]),fU(Cm[iv-1][n-1]),fU(res),fU(vr),fU(sd),fmtP(res>0?sd/res:0)],wm);
+  });
+  hline();
+  row(['Total','—','—',fU(Rtot),fU(varTot)+'*',fU(sdTot),fmtP(sdTot/Rtot)],wm,true);
+  chk(7);
+  doc.setFontSize(7);doc.setTextColor(140,140,140);
+  doc.text('* Varianza total incluye terminos de covarianza entre anos de accidente (formula completa de Mack).',M,y);
+  y+=6; doc.setTextColor(30,30,30);
+
+  subhead('Factores de desarrollo f_k');
+  const wf=CW/fv.length;
+  row(fv.map((_,i)=>`${i+1}->${i+2}`), fv.map(()=>wf), true, true);
+  row(fv.map(v=>v.toFixed(4)),          fv.map(()=>wf));
+  y+=3;
+
+  // ── BOOTSTRAP ─────────────────────────────────────────────────────────────
+  section('BOOTSTRAP — Distribucion de la reserva total');
+  row(['Media', fU(bootMean), 'SD Bootstrap', fU(bootSD)],         [A,B,A,B]);
+  row(['Mediana (P50)', fU(pctVals[0]), 'CV Bootstrap', fmtP(bootSD/bootMean)],[A,B,A,B]);
+  row(['N simulaciones', N.toLocaleString('es-ES'), 'Sims validas', simArr.length.toLocaleString('es-ES')],[A,B,A,B]);
+  y+=3;
+
+  subhead('Percentiles empiricos');
+  const wp=[32,36,50,46];
+  row(['Percentil','Reserva','vs Media Bootstrap','vs Reserva Mack'],wp,true,true);
+  hline();
+  pctVals.forEach((v,i)=>{
+    row([[50,75,90,95,99,99.5][i]+'%', fU(v), '+'+fmtP((v-bootMean)/bootMean), fmtP((v-Rtot)/Rtot)], wp, i===5);
+  });
+  y+=3;
+
+  subhead('Parametros de dispersion alpha_k');
+  const wa=CW/alpha.length;
+  row(alpha.map((_,i)=>`${i+1}->${i+2}`), alpha.map(()=>wa), true, true);
+  row(alpha.map(v=>v<0.001?v.toFixed(6):v.toFixed(4)), alpha.map(()=>wa));
+  y+=3;
+
+  subhead('Parametros lognormal implicita (reserva total)');
+  row(['mu', ln.mu.toFixed(4), 'sigma', ln.sigma.toFixed(4)], [A,B,A,B]);
+  row(['E[R]', fU(Math.exp(ln.mu+0.5*ln.sigma*ln.sigma)), 'SD[R]', fU(sdTot)], [A,B,A,B]);
+
+  // ── FOOTER en todas las páginas ────────────────────────────────────────────
+  const total=doc.getNumberOfPages();
+  for(let p=1;p<=total;p++){
+    doc.setPage(p);
+    doc.setFontSize(7);doc.setTextColor(170,170,170);
+    doc.text('Mack (1993) | Bootstrap CL | KDE Silverman | '+new Date().toLocaleString('es-ES'),M,288);
+    doc.text('Pag. '+p+' / '+total, W-M, 288, {align:'right'});
+  }
+
+  doc.save('IBNR_reserving.pdf');
+}
+
+function dl(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();}
+</script>
+</body>
+</html>
